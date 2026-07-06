@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- Mobile-first: viewport travado para simular experiência de app -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Tu Visse? — Descubra novas músicas pelo seu humor</title>
+  <meta name="description" content="Curadoria 100% humana de música nova, baseada no seu mood. Sem algoritmo, só descoberta de verdade.">
+
+  <!-- ===================================================================
+       FONTES (Google Fonts)
+       - Archivo Black: títulos pesados e geométricos (identidade Pop/Retrô)
+       - DM Sans: texto de apoio, alta legibilidade em mobile
+  ==================================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS da aplicação -->
+  <link rel="stylesheet" href="css/style.css">
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2290748703182298"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+  <!-- ===================================================================
+       SDK do Supabase via CDN (conforme PRD, seção 2 — Stack Tecnológica)
+       Carregado antes do nosso app.js para que `window.supabase` já
+       exista quando formos criar o client.
+  ==================================================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<!--GOOGLE ADSENSE-->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2290748703182298"
+     crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+  <!-- =====================================================================
+       CABEÇALHO (RF01)
+       Logo + descrição da proposta + espaço reservado pro Banner Ad 01
+  ====================================================================== -->
+  <header class="header">
+    <div class="header__brand">
+      <h1 class="logo">TU VISSE?</h1>
+      <p class="tagline">Descubra novas músicas baseadas no seu humor.<br>Curadoria humana para novos artistas!</p>
+    </div>
+
+    <!-- Espaço reservado — Banner Ad 01 (Google Ads, 320x50, topo) -->
+    <div class="ad-slot ad-slot--top" id="ad-slot-top" aria-label="Espaço publicitário">
+      <span class="ad-slot__label">Anúncio</span>
+      <div class="ad-slot__placeholder">Google Ads · 320×50</div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ===================================================================
+         SELETOR DE MOODS (RF01)
+         Grid simplificado para conter exatamente 3 opções: Calmo, Feliz e Dançante.
+    ==================================================================== -->
+    <section class="mood-section" aria-labelledby="mood-heading">
+      <h2 id="mood-heading" class="mood-section__title">Selecione seu mood:</h2>
+
+      <div class="mood-grid" id="mood-grid">
+        <button class="mood-card mood-card--cyan" data-mood="calmo" aria-label="Mood calmo">
+          <span class="mood-card__emoji" aria-hidden="true">😎</span>
+          <span class="mood-card__label">Calmo</span>
+        </button>
+
+        <button class="mood-card mood-card--yellow" data-mood="feliz" aria-label="Mood feliz">
+          <span class="mood-card__emoji" aria-hidden="true">☀️</span>
+          <span class="mood-card__label">Feliz</span>
+        </button>
+
+        <button class="mood-card mood-card--pink" data-mood="dancante" aria-label="Mood dançante">
+          <span class="mood-card__emoji" aria-hidden="true">💃</span>
+          <span class="mood-card__label">Dançante</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         BLOCO APOIA.SE (RF01)
+    ==================================================================== -->
+    <section class="support-card">
+      <div class="support-card__icon" aria-hidden="true">🎤</div>
+      <h3 class="support-card__title">Apoie o projeto</h3>
+      <p class="support-card__text">Curadoria independente precisa de você! Ajude o "Tu Visse?" a crescer.</p>
+      <!-- Trocar o href abaixo pelo link real da campanha no Apoia.se -->
+      <a class="support-card__button" href="https://apoia.se/" target="_blank" rel="noopener noreferrer">
+        Apoiar no Apoia.se
+      </a>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       RODAPÉ (RF01)
+       Links institucionais + Banner Ad 02
+  ====================================================================== -->
+  <footer class="footer">
+    <!-- Espaço reservado — Banner Ad 02 (Google Ads, 320x100) -->
+    <div class="ad-slot ad-slot--bottom" id="ad-slot-bottom" aria-label="Espaço publicitário">
+      <span class="ad-slot__label">Anúncio</span>
+      <div class="ad-slot__placeholder">Google Ads · 320×100</div>
+    </div>
+
+    <nav class="footer__links" aria-label="Links institucionais">
+      <a href="#">Sobre</a>
+      <a href="#">Contato</a>
+      <a href="#">Termos</a>
+      <a href="#">Privacidade</a>
+    </nav>
+    <p class="footer__credit">Feito com curadoria humana © <span id="year"></span> Tu Visse?</p>
+  </footer>
+
+  <!-- =====================================================================
+       MODAL DE INDICAÇÃO — "The Music Reveal" (RF03)
+  ====================================================================== -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-song-title">
+
+      <button class="modal__close" id="modal-close" aria-label="Fechar">✕</button>
+
+      <!-- Estado de carregamento -->
+      <div class="modal__loading" id="modal-loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Garimpando sua próxima música...</p>
+      </div>
+
+      <!-- Estado de erro -->
+      <div class="modal__error" id="modal-error" hidden>
+        <p class="modal__error-text" id="modal-error-text">Não achamos nada por aqui ainda. Tenta outro mood!</p>
+      </div>
+
+      <!-- Estado de conteúdo -->
+      <div class="modal__content" id="modal-content" hidden>
+        <div class="modal__media">
+          <img id="modal-cover" class="modal__cover" src="" alt="">
+        </div>
+
+        <div class="modal__info">
+          <p class="modal__eyebrow">Nome da música:</p>
+          <h3 class="modal__song-title" id="modal-song-title"></h3>
+
+          <p class="modal__eyebrow">Artista:</p>
+          <p class="modal__artist" id="modal-artist"></p>
+        </div>
+
+        <div class="modal__actions">
+          <a class="modal__action-btn modal__action-btn--youtube" id="modal-youtube" href="#" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">▶</span> Ouvir no YouTube
+          </a>
+          <a class="modal__action-btn modal__action-btn--instagram" id="modal-instagram" href="#" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">📷</span> Ver no Instagram
+          </a>
+        </div>
+
+        <!-- RF03 — botão de recorrência -->
+        <button class="modal__another-btn" id="modal-another">Quero outra! 🎲</button>
+      </div>
+
+    </div>
+  </div>
+
+<script src="./js/config.js?v=1.0.1"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>
